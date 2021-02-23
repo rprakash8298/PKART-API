@@ -80,5 +80,14 @@ router.post('/task/image/:id', auth, uploads.single('image'), async (req, res, n
 })
 
 
+router.get('/task/taskUse', async (req, res) => {
+    try {
+        const task = await Task.find()
+        res.send(task)
+    } catch (e) {
+        res.send(e)
+    }
+})
+
 
 module.exports = router
