@@ -3,8 +3,8 @@ const router =new express.Router()
 const Task = require('../models/task')
 const auth = require('../auth/auth')
 const multer = require('multer')
-const sharp = require('sharp')
-
+// const sharp = require('sharp')
+const cloudinary = require('cloudinary')
 
 
 router.post('/task', auth, async (req, res) => {
@@ -56,22 +56,43 @@ router.delete('/task/delete/:id',auth ,async (req, res) => {
     }
 })
 
-const uploads = multer({
-    limits: {
-        fileSize:1000000
-    },
-    fileFilter(req, file, cb) {
-        if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-            return cb(new Error('please upload a valid image '))
-        }
-        return cb(undefined,true)
-    }
+// cloudinary line
+var storage = multer.diskStorage({
+	filename: function (req, file, callback) {
+		callback(null, Date.now() + file.originalname);
+	}
+});
+var imageFilter = function (req, file, cb) {
+	if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/i)) {
+		return cb(new Error('Only image files are allowed!'), false);
+	}
+	cb(null, true);
+};
+const uploads = multer({ storage: storage, fileFilter: imageFilter })
+cloudinary.config({
+    cloud_name: 'do1ztuacw',
+    api_key: '149988255623473',
+    api_secret:'dG8X7emndqfcqgWpGNLs2s4Iikg'
 })
-router.post('/task/image/:id', auth, uploads.single('image'), async (req, res, next) => {
-    const buffer = await sharp(req.file.buffer).resize({ width: 300, height: 200 }).png().toBuffer()
+// cloudinary lines
+
+// const uploads = multer({
+//     limits: {
+//         fileSize:1000000
+//     },
+//     fileFilter(req, file, cb) {
+//         if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+//             return cb(new Error('please upload a valid image '))
+//         }
+//         return cb(undefined,true)
+//     }
+// })
+router.post('/task/image/:id', uploads.single('image'),auth, async (req, res, next) => {
+    // const buffer = await sharp(req.file.buffer).resize({ width: 300, height: 200 }).png().toBuffer()
+    const result = await cloudinary.uploader.upload(req.file.path)
     try {
         const task = await Task.findById(req.params.id)
-        task.image = buffer
+        task.image = result.secure_url
         await task.save()
         res.send('image uploaded')
     } catch (e) {

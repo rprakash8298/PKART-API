@@ -1,7 +1,9 @@
 const mongoose = require('mongoose')
 
 const taskSchema = new mongoose.Schema({
-   
+    image: {
+        type: String,
+    },
     prodName: {
         type: String,
         required:true,
@@ -32,10 +34,9 @@ const taskSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         required: true,
         ref:'User'
-    },
-     image: {
-        type: Buffer,
     }
+    
+     
 })
 
 
